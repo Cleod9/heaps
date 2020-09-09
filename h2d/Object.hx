@@ -520,7 +520,7 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 		}
 	}
 
-	function calcAbsPos() {
+	function calcAbsPos(){
 		if( parent == null ) {
 			var cr, sr;
 			if( rotation == 0 ) {
@@ -542,18 +542,26 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 		} else {
 			// M(rel) = S . R . T
 			// M(abs) = M(rel) . P(abs)
-			if( rotation == 0 ) {
+			
+			if (overrideMatrix) {
+				scaleX = overrideMatA;
+				scaleY = overrideMatD;
+				x = overrideMatX;
+				y = overrideMatY;
+			}
+			if(rotation == 0 && !(overrideMatrix && (overrideMatB != 0 || overrideMatC != 0))) {
 				matA = scaleX * parent.matA;
 				matB = scaleX * parent.matB;
 				matC = scaleY * parent.matC;
 				matD = scaleY * parent.matD;
 			} else {
-				var cr = Math.cos(rotation);
-				var sr = Math.sin(rotation);
-				var tmpA = scaleX * cr;
-				var tmpB = scaleX * sr;
-				var tmpC = scaleY * -sr;
-				var tmpD = scaleY * cr;
+				var cr = (overrideMatrix) ? Math.atan(overrideMatC) : Math.cos(rotation);
+				var sr = (overrideMatrix) ? Math.atan(overrideMatB) : Math.sin(rotation);
+
+				var tmpA = (overrideMatrix) ? scaleX * cr : scaleX * cr;
+				var tmpB = (overrideMatrix) ? scaleX * overrideMatB : scaleX * sr;
+				var tmpC = (overrideMatrix) ? scaleY * overrideMatC : scaleY * -sr;
+				var tmpD = (overrideMatrix) ? scaleY * cr : scaleY * cr;
 				matA = tmpA * parent.matA + tmpB * parent.matC;
 				matB = tmpA * parent.matB + tmpB * parent.matD;
 				matC = tmpC * parent.matA + tmpD * parent.matC;
@@ -563,7 +571,7 @@ class Object #if (domkit && !domkit_heaps) implements domkit.Model<h2d.Object> #
 			absY = x * parent.matB + y * parent.matD + parent.absY;
 		}
 	}
-
+	
 	function emitTile( ctx : RenderContext, tile : h2d.Tile ) {
 		if( nullDrawable == null )
 			nullDrawable = @:privateAccess new h2d.Drawable(null);
